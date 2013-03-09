@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "mpi.h"
 
-int N=10;
+int N=12;
 
 void printfVector(double vec[], int length){
   for(int i=0; i<length; i++) {
@@ -22,25 +22,65 @@ void printfMatrix(double matrix[][N], int nrows) {
   }
 }
 
+void generateMatrix(double matrix[][N]){
+
+  int rank, p;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+
+  for(int i=0; i<N/p; i++) {
+  for(int j=0; j<N  ; j++) {
+
+    if(j-rank*N/p>i) {
+      matrix[i][j] = 0;
+    } else {
+      matrix[i][j] = rank*(N/p)+i+1;
+    }
+
+  }}
+}
+
+void matVec(double matrix[][N], double vector[N], double result[]){
+
+  MPI_Bcast(vector, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  int rank, p;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+
+  double temp[N/p];
+
+  for(int i=0; i<N/p; i++){
+  for(int j=0; j<N  ; j++){
+    temp[i] += matrix[i][j] * vector[j];
+  }}
+
+  MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
+}
+
 int main(int argc, char* argv[]) {
 
-  int rank;
-  int p;
+  int rank, p;
 
   MPI_Init(&argc, & argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-  double matrix[2][N];
+  double matrix[N/p][N];
+  generateMatrix(matrix);
+
+  double vector[N];
   if(rank==0){
-    for(int j=0; j<N; j++){
-      matrix[0][j] = j;
-      matrix[1][j] = 2*j;
+    for(int i=0; i<N; i++){
+      vector[i] = 2;
     }
   }
 
+  double result[N/p];
+  matVec(matrix,vector,result);
+
   if(rank==0){
-    printfMatrix(matrix,2);
+    printfVector(result,N);
   }
 
   MPI_Finalize();

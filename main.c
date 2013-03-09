@@ -10,8 +10,42 @@
 
 int N=12;
 
-void printfVector(double vec[], int length){
-  for(int i=0; i<length; i++) {
+void printfVector(double vec[N]);
+void printfMatrix(double matrix[][N], int nrows);
+void generateMatrix(double matrix[][N]);
+void matVec(double matrix[][N], double vector[N], double result[N]);
+double norm2(double vector[N]);
+
+int main(int argc, char* argv[]) {
+
+  int rank, p;
+
+  MPI_Init(&argc, & argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+
+  double matrix[N/p][N];
+  generateMatrix(matrix);
+
+  double vector[N];
+  if(rank==0){
+    for(int i=0; i<N; i++){
+      vector[i] = i;
+    }
+  }
+
+  if(rank==0){
+    printfVector(vector);
+    printf("%f",norm2(vector));
+  }
+
+  MPI_Finalize();
+
+  return 0;
+}
+
+void printfVector(double vec[]){
+  for(int i=0; i<N; i++) {
     printf("%1.1f\t",vec[i]);
   }
   printf("\n");
@@ -19,7 +53,7 @@ void printfVector(double vec[], int length){
 
 void printfMatrix(double matrix[][N], int nrows) {
   for(int i=0; i<nrows; i++) {
-    printfVector(matrix[i],N);
+    printfVector(matrix[i]);
   }
 }
 
@@ -60,39 +94,11 @@ void matVec(double matrix[][N], double vector[N], double result[N]){
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
 }
 
-double norm2(double vector[], int size){
+double norm2(double vector[]){
   double result = 0;
-  for(int i=0; i<size;i++){
+  for(int i=0; i<N;i++){
     result += pow(vector[i],2);
   }
-  return pow(result,0.5);;
+  return pow(result,0.5);
 }
 
-
-int main(int argc, char* argv[]) {
-
-  int rank, p;
-
-  MPI_Init(&argc, & argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &p);
-
-  double matrix[N/p][N];
-  generateMatrix(matrix);
-
-  double vector[N];
-  if(rank==0){
-    for(int i=0; i<N; i++){
-      vector[i] = i;
-    }
-  }
-
-  if(rank==0){
-    printfVector(vector,N);
-    printf("%f",norm2(vector,N));
-  }
-
-  MPI_Finalize();
-
-  return 0;
-}

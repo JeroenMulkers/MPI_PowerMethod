@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 #include "mpi.h"
 
 int N=12;
@@ -40,13 +41,14 @@ void generateMatrix(double matrix[][N]){
   }}
 }
 
-void matVec(double matrix[][N], double vector[N], double result[]){
+void matVec(double matrix[][N], double vector[N], double result[N]){
 
   MPI_Bcast(vector, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   int rank, p;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
+
 
   double temp[N/p];
 
@@ -57,6 +59,15 @@ void matVec(double matrix[][N], double vector[N], double result[]){
 
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
 }
+
+double norm2(double vector[], int size){
+  double result = 0;
+  for(int i=0; i<size;i++){
+    result += pow(vector[i],2);
+  }
+  return pow(result,0.5);;
+}
+
 
 int main(int argc, char* argv[]) {
 
@@ -72,15 +83,13 @@ int main(int argc, char* argv[]) {
   double vector[N];
   if(rank==0){
     for(int i=0; i<N; i++){
-      vector[i] = 2;
+      vector[i] = i;
     }
   }
 
-  double result[N/p];
-  matVec(matrix,vector,result);
-
   if(rank==0){
-    printfVector(result,N);
+    printfVector(vector,N);
+    printf("%f",norm2(vector,N));
   }
 
   MPI_Finalize();

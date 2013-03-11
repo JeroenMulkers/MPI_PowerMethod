@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include "mpi.h"
 #include "matrix.h"
 #include "math.h"
@@ -26,7 +27,6 @@ void matVec(double matrix[], double vector[], double result[], int N){
   int rank, p;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
-
 
   double temp[N/p];
 
@@ -78,3 +78,33 @@ double powerMethod(double matrix[], int ntimes, int N) {
 
   return norm2(vector,N);
 }
+
+
+int norm2_test(){
+
+  int N=17;
+  double vector_1[N];
+  double vector_2[N];
+
+  for(int i=0; i<N; i++){
+    vector_1[i] = 0;
+    vector_2[i] = 3.7*(i+1)+1./5.;
+  }
+  vector_1[7]=1.;
+
+  double norm_1 = norm2(vector_1,N);
+  double norm_2 = norm2(vector_2,N);
+  int nr = 1000*norm_2;
+
+  int result = 1;
+  if ( norm_1 != 1 || nr != 157047 ){
+    result = 0;
+  }
+
+  return result;
+}
+
+void matrix_testAll(){
+  assert(norm2_test());
+}
+

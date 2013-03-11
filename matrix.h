@@ -11,4 +11,6 @@ double norm2(double vector[], int N);
 
 double powerMethod(double matrix[], int ntimes, int N);
 
+void matrix_testAll();
+
 #endif

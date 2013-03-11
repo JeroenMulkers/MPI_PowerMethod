@@ -1,7 +1,16 @@
-SHELL = /bin/bash
+COMP = mpicc -std=c99
+OBJS = main.o matrix.o
 
-main.out: main.c
-	mpicc -std=c99 -o main.out main.c
+main.out: $(OBJS)
+	$(COMP) $^ -o $@
+
+%.o: %.c *.h
+	$(COMP) -c $<
+
+.PHONY: clean realclean
 
 clean:
-	rm -f main.out
+	rm -f *.o
+
+realclean: clean
+	rm -f *.out

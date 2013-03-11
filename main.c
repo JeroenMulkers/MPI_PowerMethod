@@ -22,14 +22,14 @@ int main(int argc, char* argv[]) {
 
   matrix_testAll();
 
-  // double matrix[N*N/p];
-  // generateMatrix(matrix,N);
-  // printfMatrix(matrix,N/p,N);
+  double matrix[N*N/p];
+  generateMatrix(matrix,N);
+  printfMatrix(matrix,N/p,N);
 
-  // double lambda = powerMethod(matrix,100,N);
-  // if(rank==0){
-  //    printf("%f",lambda);
-  // }
+  double lambda = powerMethod(matrix,100,N);
+  if(rank==0){
+     printf("%f",lambda);
+  }
 
   MPI_Finalize();
 

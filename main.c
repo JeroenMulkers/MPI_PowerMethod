@@ -8,16 +8,17 @@
 #include <math.h>
 #include "mpi.h"
 
-int N=12;
 
-void printfVector(double vec[N]);
-void printfMatrix(double matrix[], int nrows);
-void generateMatrix(double matrix[]);
-void matVec(double matrix[], double vector[N], double result[N]);
-double norm2(double vector[N]);
-double powerMethod(double matrix[], int ntimes);
+void printfVector(double vec[], int N);
+void printfMatrix(double matrix[], int nrows, int ncolumns);
+void generateMatrix(double matrix[], int N);
+void matVec(double matrix[], double vector[], double result[], int N);
+double norm2(double vector[], int N);
+double powerMethod(double matrix[], int ntimes, int N);
 
 int main(int argc, char* argv[]) {
+
+  int N=12;
 
   int rank, p;
 
@@ -26,10 +27,10 @@ int main(int argc, char* argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
   double matrix[N*N/p];
-  generateMatrix(matrix);
-  printfMatrix(matrix,N/p);
+  generateMatrix(matrix,N);
+  printfMatrix(matrix,N/p,N);
 
-  double lambda = powerMethod(matrix,100);
+  double lambda = powerMethod(matrix,100,N);
   if(rank==0){
      printf("%f",lambda);
   }
@@ -39,23 +40,23 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void printfVector(double vec[]){
+void printfVector(double vec[],int N){
   for(int i=0; i<N; i++) {
     printf("%1.1f\t",vec[i]);
   }
   printf("\n");
 }
 
-void printfMatrix(double matrix[], int nrows) {
+void printfMatrix(double matrix[], int nrows, int ncolumns) {
   for(int i=0; i<nrows; i++) {
-    for(int j=0; j<N; j++) {
-      printf("%1.1f\t",matrix[j+N*i]);
+    for(int j=0; j<ncolumns; j++) {
+      printf("%1.1f\t",matrix[j+ncolumns*i]);
     }
     printf("\n");
   }
 }
 
-void generateMatrix(double matrix[]){
+void generateMatrix(double matrix[], int N){
 
   int rank, p;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -73,7 +74,7 @@ void generateMatrix(double matrix[]){
   }}
 }
 
-void matVec(double matrix[], double vector[N], double result[N]){
+void matVec(double matrix[], double vector[], double result[], int N){
 
   MPI_Bcast(vector, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
@@ -92,7 +93,7 @@ void matVec(double matrix[], double vector[N], double result[N]){
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
 }
 
-double norm2(double vector[]){
+double norm2(double vector[], int N){
   double result = 0;
   for(int i=0; i<N;i++){
     result += pow(vector[i],2);
@@ -100,7 +101,7 @@ double norm2(double vector[]){
   return pow(result,0.5);
 }
 
-double powerMethod(double matrix[], int ntimes) {
+double powerMethod(double matrix[], int ntimes, int N) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -115,14 +116,14 @@ double powerMethod(double matrix[], int ntimes) {
   for(int n=0; n<ntimes; n++){
 
     if(rank==0){
-      double norm = norm2(vector);
+      double norm = norm2(vector,N);
       for(int i=0; i<N; i++){
 	vector[i] = vector[i]/norm;
       }
     }
 
     double temp[N];
-    matVec(matrix,vector,temp);
+    matVec(matrix,vector,temp,N);
     if(rank==0){
       for(int i=0; i<N; i++){
 	vector[i] = temp[i];
@@ -130,5 +131,5 @@ double powerMethod(double matrix[], int ntimes) {
     }
   }
 
-  return norm2(vector);
+  return norm2(vector,N);
 }

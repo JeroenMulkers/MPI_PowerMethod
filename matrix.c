@@ -38,6 +38,40 @@ void matVec(double matrix[], double vector[], double result[], int N){
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
 }
 
+int matVec_test(){
+
+  int rank, p;
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  int N=3*p;
+
+  double matrix[N*N/p];
+  double vector[N];
+  double result[N];
+
+  for(int j=0; j<N; j++){
+    for(int i=0; i<N/p; i++){
+	matrix[j+N*i] = 1;
+    }
+    vector[j] = 1;
+  }
+
+  matVec(matrix,vector,result,N);
+
+  int ok = 1;
+
+  if(rank==0){
+    for(int i=0; i<N; i++){
+      if(result[i] != N){ok=0;}
+    }
+  }
+
+  MPI_Bcast(&ok, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  return ok;
+}
+
 double norm2(double vector[], int N){
   double result = 0;
   for(int i=0; i<N;i++){
@@ -106,5 +140,6 @@ int norm2_test(){
 
 void matrix_testAll(){
   assert(norm2_test());
+  assert(matVec_test());
 }
 

@@ -12,10 +12,10 @@ int N=12;
 
 void printfVector(double vec[N]);
 void printfMatrix(double matrix[][N], int nrows);
-void generateMatrix(double matrix[][N]);
-void matVec(double matrix[][N], double vector[N], double result[N]);
+void generateMatrix(double matrix[]);
+void matVec(double matrix[], double vector[N], double result[N]);
 double norm2(double vector[N]);
-double powerMethod(double matrix[][N], int ntimes);
+double powerMethod(double matrix[], int ntimes);
 
 int main(int argc, char* argv[]) {
 
@@ -25,13 +25,13 @@ int main(int argc, char* argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-  double matrix[N/p][N];
+  double matrix[N*N/p];
   generateMatrix(matrix);
 
-  double lambda = powerMethod(matrix,100);
-  if(rank==0){
-    printf("%f",lambda);
-  }
+  // double lambda = powerMethod(matrix,100);
+  // if(rank==0){
+  //    printf("%f",lambda);
+  // }
 
   MPI_Finalize();
 
@@ -51,25 +51,25 @@ void printfMatrix(double matrix[][N], int nrows) {
   }
 }
 
-void generateMatrix(double matrix[][N]){
+void generateMatrix(double matrix[]){
 
   int rank, p;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-  for(int i=0; i<N/p; i++) {
   for(int j=0; j<N  ; j++) {
+  for(int i=0; i<N/p; i++) {
 
     if(j-rank*N/p>i) {
-      matrix[i][j] = 0;
+      matrix[i+N*j] = 0;
     } else {
-      matrix[i][j] = rank*(N/p)+i+1;
+      matrix[i+N*j] = rank*(N/p)+i+1;
     }
 
   }}
 }
 
-void matVec(double matrix[][N], double vector[N], double result[N]){
+void matVec(double matrix[], double vector[N], double result[N]){
 
   MPI_Bcast(vector, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
@@ -82,7 +82,7 @@ void matVec(double matrix[][N], double vector[N], double result[N]){
 
   for(int i=0; i<N/p; i++){
   for(int j=0; j<N  ; j++){
-    temp[i] += matrix[i][j] * vector[j];
+    temp[i] += matrix[i+N*j] * vector[j];
   }}
 
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -96,7 +96,7 @@ double norm2(double vector[]){
   return pow(result,0.5);
 }
 
-double powerMethod(double matrix[][N], int ntimes) {
+double powerMethod(double matrix[], int ntimes) {
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);

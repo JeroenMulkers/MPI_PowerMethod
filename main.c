@@ -11,7 +11,7 @@
 int N=12;
 
 void printfVector(double vec[N]);
-void printfMatrix(double matrix[][N], int nrows);
+void printfMatrix(double matrix[], int nrows);
 void generateMatrix(double matrix[]);
 void matVec(double matrix[], double vector[N], double result[N]);
 double norm2(double vector[N]);
@@ -27,11 +27,12 @@ int main(int argc, char* argv[]) {
 
   double matrix[N*N/p];
   generateMatrix(matrix);
+  printfMatrix(matrix,N/p);
 
-  // double lambda = powerMethod(matrix,100);
-  // if(rank==0){
-  //    printf("%f",lambda);
-  // }
+  double lambda = powerMethod(matrix,100);
+  if(rank==0){
+     printf("%f",lambda);
+  }
 
   MPI_Finalize();
 
@@ -45,9 +46,12 @@ void printfVector(double vec[]){
   printf("\n");
 }
 
-void printfMatrix(double matrix[][N], int nrows) {
+void printfMatrix(double matrix[], int nrows) {
   for(int i=0; i<nrows; i++) {
-    printfVector(matrix[i]);
+    for(int j=0; j<N; j++) {
+      printf("%1.1f\t",matrix[j+N*i]);
+    }
+    printf("\n");
   }
 }
 
@@ -61,9 +65,9 @@ void generateMatrix(double matrix[]){
   for(int i=0; i<N/p; i++) {
 
     if(j-rank*N/p>i) {
-      matrix[i+N*j] = 0;
+      matrix[j+N*i] = 0;
     } else {
-      matrix[i+N*j] = rank*(N/p)+i+1;
+      matrix[j+N*i] = rank*(N/p)+i+1;
     }
 
   }}
@@ -82,7 +86,7 @@ void matVec(double matrix[], double vector[N], double result[N]){
 
   for(int i=0; i<N/p; i++){
   for(int j=0; j<N  ; j++){
-    temp[i] += matrix[i+N*j] * vector[j];
+    temp[i] += matrix[j+N*i] * vector[j];
   }}
 
   MPI_Gather(temp,N/p,MPI_DOUBLE,result,N/p,MPI_DOUBLE,0,MPI_COMM_WORLD);

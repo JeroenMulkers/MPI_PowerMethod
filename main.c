@@ -12,7 +12,7 @@ void generateMatrix(double matrix[], int N);
 
 int main(int argc, char* argv[]) {
 
-  int N=12;
+  int N=35;
 
   int rank, p;
 

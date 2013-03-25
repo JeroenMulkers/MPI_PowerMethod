@@ -36,6 +36,9 @@ void matVec(double matrix[], double vector[], double result[], int N){
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
   double temp[N/p];
+  for(int i=0; i<N/p; i++){
+    temp[i]=0;
+  }
 
   for(int i=0; i<N/p; i++){
   for(int j=0; j<N  ; j++){

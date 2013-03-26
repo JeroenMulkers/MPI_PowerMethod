@@ -12,7 +12,7 @@ void generateMatrix(double matrix[], int N);
 
 int main(int argc, char* argv[]) {
 
-  int N=35;
+  int N=1000;
 
   int rank, p;
 
@@ -20,16 +20,21 @@ int main(int argc, char* argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &p);
 
-  matrix_testAll();
+  // matrix_testAll();
 
   double matrix[N*N/p];
   generateMatrix(matrix,N);
-  printfMatrix(matrix,N/p,N);
+  // printfMatrix(matrix,N/p,N);
 
+  double start = MPI_Wtime();
   double lambda = powerMethod(matrix,100,N);
+  double stop = MPI_Wtime();
+
   if(rank==0){
-     printf("%f",lambda);
+     printf("lambda = %f\n",lambda);
   }
+
+  printf("pr%d: %f\n",rank,stop-start);
 
   MPI_Finalize();
 

@@ -1,15 +1,18 @@
 #include <assert.h>
+#include <stdio.h>
 #include "math.h"
 #include "mpi.h"
 #include "matrix.h"
 
 static int matVec_test();
 static int norm2_test();
+static int powerMethod_test();
 void matrix_testAll();
 
 void matrix_testAll(){
   assert(norm2_test());
   assert(matVec_test());
+  assert(powerMethod_test());
 }
 
 static int matVec_test(){
@@ -68,4 +71,66 @@ static int norm2_test(){
   }
 
   return result;
+}
+
+static int powerMethod_test(){
+
+  int ok=1;
+
+  int p,rank;
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  for(int n=1; n<=50; n++){
+    if( n%p == 0 ){
+
+      char filename[30];
+      sprintf(filename,"./testMatrices/matrix_%d.dat",n);
+
+      FILE *file = fopen(filename,"r");
+      if ( file == NULL ){
+        printf("couldn't open file %S",filename);
+	ok = 0;
+      } else {
+
+        double matrixBuffer[n*n];
+        double lambda_ref;
+
+        float read;
+
+        for(int i=0; i<n*n; i++){
+          fscanf(file,"%f",&read);
+          matrixBuffer[i] = (double) read;
+        }
+
+        fscanf(file,"%f",&read);
+        lambda_ref = (double) read;
+
+	double matrix[n*n/p];
+
+	for(int i=0; i<n*n/p; i++){
+      	  matrix[i] = matrixBuffer[i+rank*n*n/p];
+      	}
+
+	  double lambda = powerMethod(matrix,1000,n);
+	if(rank==0){
+	  printf("n=%d\n",n);
+	  printf("labda_ref %f\n",lambda_ref);
+	  printf("lambda    %f\n",lambda);
+	  printf("diff      %f\n",fabs(lambda-lambda_ref));
+
+      	  if(fabs(lambda-lambda_ref) > 0.0001){
+      	    ok = 0;
+      	  }
+      	}
+      	MPI_Bcast(&ok, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+      }
+
+      fclose(file);
+
+    }
+  }
+
+  return ok;
 }

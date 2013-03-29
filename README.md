@@ -3,7 +3,6 @@ MPI_PowerMethod
 
 The power method uses matrix-vector multiplication to estimate the size of the largest eigenvalue of a matrix A. An attempt is made to implement this algorithm in parallel.
 
-Comments
---------
+More information can be found in the following [report] (dl.dropbox.com/u/23423446/main.pdf)
 
-Matrices are put in single arrays. This is useful for passing the matrices to functions. The disadvantage is that the code becomes a little harder to read.
+

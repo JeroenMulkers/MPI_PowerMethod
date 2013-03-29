@@ -14,3 +14,4 @@ clean:
 
 realclean: clean
 	rm -f *.out
+	rm *.dat

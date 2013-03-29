@@ -53,9 +53,22 @@ int main(int argc, char* argv[]) {
   double stop = MPI_Wtime();
 
 
+
+  /* Calculating times */
+  double timediff = stop - start;
+  double times[p];
+  double average = 0;
+  MPI_Gather(&timediff,1,MPI_DOUBLE,times,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  if(rank==0){
+    for(int i=0; i<p; i++)
+      average += times[i];
+    average /= p;
+  }
+
+
   /* Print the results */
-  if(rank==0) printf("lambda = %f\n",lambda);
-  printf("pr%d: %f\n",rank,stop-start);
+  if(rank==0)
+    printf("dimension\t%d\tlambda\t%f\ttime\t%f\n",N,lambda,average);
 
 
   /* End MPI */
